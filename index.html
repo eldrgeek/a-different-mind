@@ -6,6 +6,23 @@
 <title>A Different Mind</title>
 <meta name="description" content="For people who don't use AI and don't want to. Pick what's pushing you away, rank it, and talk to someone about it. Nobody here is trying to change your mind.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%230d0b14'/%3E%3Ccircle cx='36' cy='50' r='20' fill='none' stroke='%23ff5cf0' stroke-width='8'/%3E%3Ccircle cx='64' cy='50' r='20' fill='none' stroke='%2340e0ff' stroke-width='8'/%3E%3C/svg%3E">
+<script>
+/* Canonicalize to a trailing slash BEFORE any relative asset is requested.
+ *
+ * Mounted at a route (minds-aligned.org/a-different-mind) every relative path
+ * below resolves one directory too high and 404s. Netlify cannot fix this with
+ * a redirect: it normalizes the trailing slash before matching, so a
+ * `/x -> /x/ 301` rule matches its own target and loops forever (verified live
+ * 2026-08-02). So it is done here, first thing, before the stylesheet.
+ *
+ * Only in index.html — about.html is a real filename and must not gain a slash. */
+(function () {
+  var p = location.pathname;
+  if (!/\/$/.test(p) && !/\/[^/]*\.[^/]*$/.test(p)) {
+    location.replace(p + '/' + location.search + location.hash);
+  }
+})();
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
@@ -16,9 +33,9 @@
 <div class="scanlines" aria-hidden="true"></div>
 
 <header class="top">
-  <a class="wordmark" href="/">A DIFFERENT<span>MIND</span></a>
+  <a class="wordmark" href="./">A DIFFERENT<span>MIND</span></a>
   <nav>
-    <a href="/about" class="ghost">▶ Who made this? And why?</a>
+    <a href="about" class="ghost">▶ Who made this? And why?</a>
   </nav>
 </header>
 
@@ -133,7 +150,7 @@
     <p class="hint">
       <button class="linky" id="restart" type="button">start over</button>
       <span class="dot">·</span>
-      <a href="/about">who made this?</a>
+      <a href="about">who made this?</a>
     </p>
   </section>
 
@@ -173,11 +190,11 @@
   </div>
 
   <p class="small credit">Made in Denver by Mike Wolf and a team of AI teammates ·
-    <a href="/about">the longer answer</a></p>
+    <a href="about">the longer answer</a></p>
 </footer>
 
-<link rel="stylesheet" href="/vendor/soma-feedback/soma-feedback.css">
-<script src="/vendor/soma-feedback/soma-feedback.js" defer
+<link rel="stylesheet" href="vendor/soma-feedback/soma-feedback.css">
+<script src="vendor/soma-feedback/soma-feedback.js" defer
         data-app="a-different-mind" data-area="conversation"></script>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>

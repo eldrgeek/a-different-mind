@@ -10,8 +10,25 @@
   'use strict';
 
   var $ = function (id) { return document.getElementById(id); };
-  var SITE = location.origin;
   var APP = 'a-different-mind';
+
+  /* Where this copy of the app is mounted.
+   *
+   * Standalone that's https://a-different-mind.netlify.app/ ; proxied under the
+   * estate's front door it's https://minds-aligned.org/a-different-mind/ .
+   * Derived from this script's OWN url rather than from location.pathname,
+   * because pathname lies: at /a-different-mind (no trailing slash) any
+   * pathname-based guess yields "/" and every asset 404s one directory up.
+   * The script src is always absolute and always correct. */
+  var BASE = (function () {
+    var me = document.currentScript;
+    if (!me) {
+      var all = document.getElementsByTagName('script');
+      me = all[all.length - 1];
+    }
+    return (me && me.src) ? me.src.replace(/js\/app\.js(\?.*)?$/, '') : location.origin + '/';
+  })();
+  var SITE = BASE.replace(/\/$/, '');
 
   var LABELS = {
     principle: "I'd rather spend my time and money elsewhere",
@@ -299,7 +316,7 @@
     pending.querySelector('p').className = 'thinking';
 
     try {
-      var res = await fetch('/.netlify/functions/converse', {
+      var res = await fetch(BASE + '.netlify/functions/converse', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -437,7 +454,7 @@
     if (!email) { $('signin-status').textContent = 'Enter your email first.'; return; }
     $('signin-status').textContent = 'Sending…';
     SomaAuth.signInWithOtp(email, {
-      emailRedirectTo: SITE + '/',
+      emailRedirectTo: BASE,
       data: { site_name: 'A Different Mind' }
     }).then(function (r) {
       $('signin-status').textContent = r.error
@@ -447,7 +464,7 @@
   });
 
   $('google-btn').addEventListener('click', function () {
-    SomaAuth.signInWithOAuth('google', { redirectTo: SITE + '/' });
+    SomaAuth.signInWithOAuth('google', { redirectTo: BASE });
   });
 
   /* ── invites ──────────────────────────────────────────────────────────── */
@@ -460,7 +477,7 @@
           $('invite-status').textContent = 'Could not create the invite: ' + res.error.message;
           return;
         }
-        var url = SITE + '/?inv=' + res.data;
+        var url = BASE + '?inv=' + res.data;
         $('invite-status').textContent = name
           ? 'Ready. This invite says ' + name + ' sent it.'
           : 'Ready — but with no name on it, they\'ll be told someone who didn\'t want to say who they were invited them. Add your name if you\'d rather it carried weight.';

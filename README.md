@@ -1,6 +1,7 @@
 # A Different Mind
 
-**Live: https://a-different-mind.netlify.app**
+**Live: https://minds-aligned.org/a-different-mind/** — the canonical URL.
+(Also at https://a-different-mind.netlify.app, which is the proxy target.)
 
 A page for people who don't use AI and don't want to. A visitor picks the
 objection that sounds like them — or writes their own — and talks to a host that
@@ -102,6 +103,32 @@ when `auth.uid()` is null. Verified.
 Table: `site_invites`, RLS on with zero policies; both paths go through
 `site_invite_create` / `site_invite_lookup`. The anon key can mint and read one
 invite but cannot enumerate them.
+
+## Two URLs, one deploy
+
+Per Mike (2026-08-02), AI-related work is published as a **route on
+minds-aligned.org**, not a new subdomain: cheaper to add, one name people
+already have, and — the operational reason — it costs the Supabase auth
+allow-list **one entry no matter how many apps arrive**. That list is hard-capped
+at 2048 bytes and was two apps from full.
+
+The app is therefore **base-path-agnostic**. Assets are relative; the function
+URL and the auth/invite URLs are derived from `js/app.js`'s own `src`, not from
+`location.pathname` (which lies at a slashless route). `live-edit.js` strips the
+mount point when computing a route key, so copy Mike edits at one URL appears at
+the other — they are the same page.
+
+The route is a Netlify proxy in `agi-2026/hub-public/_redirects`. The app keeps
+its own repo and its own Netlify site and stays independently deployable; that
+file only decides what URL the public sees.
+
+**Trap, verified live:** you cannot 301 `/a-different-mind` to
+`/a-different-mind/` on Netlify — it normalizes the trailing slash before
+matching, so the rule matches its own target and loops forever. Canonicalization
+is therefore a four-line script at the top of `index.html`, before the
+stylesheet. `soma-ship-check.py` strips trailing slashes from the URL you give
+it, so run the asset-integrity gate against the **netlify.app origin**; against
+the route it reports false 404s for the pre-redirect URL.
 
 ## Known gaps and one judgment call
 

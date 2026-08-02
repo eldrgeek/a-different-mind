@@ -44,11 +44,33 @@
       ? global.SomaAuth.getClient() : null;
   }
 
-  // Route normalization: ids and uuids collapse to :id so an edit made on one
-  // record's page isn't keyed to that record. This site has no record pages
-  // yet, but inheriting the rule costs nothing and removes a future trap.
+  /* The path this copy is mounted at, from this script's own url — see the
+   * same derivation in app.js for why pathname can't be trusted. */
+  var BASE_PATH = (function () {
+    var me = document.currentScript;
+    if (!me) {
+      var all = document.getElementsByTagName('script');
+      me = all[all.length - 1];
+    }
+    if (!me || !me.src) return '/';
+    try {
+      return new URL(me.src).pathname.replace(/js\/live-edit\.js(\?.*)?$/, '');
+    } catch (e) { return '/'; }
+  })();
+
+  // Route normalization. Two jobs:
+  //   1. ids and uuids collapse to :id, so an edit made on one record's page
+  //      isn't keyed to that record.
+  //   2. the mount point is stripped, so `/a-different-mind/about` under the
+  //      front door and `/about` standalone are the SAME route. Without this,
+  //      copy Mike edits on one origin silently fails to appear on the other —
+  //      and the same page is served at both.
   function route() {
-    return (location.pathname || '/')
+    var p = location.pathname || '/';
+    if (BASE_PATH !== '/' && p.indexOf(BASE_PATH) === 0) {
+      p = '/' + p.slice(BASE_PATH.length);
+    }
+    return p
       .replace(/\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi, '/:id')
       .replace(/\/\d+/g, '/:id')
       .replace(/\/index\.html$/, '/')
