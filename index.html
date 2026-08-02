@@ -4,317 +4,184 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>A Different Mind</title>
-<meta name="description" content="For people who don't use AI and don't want to. Nobody here is going to try to change your mind.">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='34' cy='50' r='22' fill='none' stroke='%23c8663a' stroke-width='7'/%3E%3Ccircle cx='66' cy='50' r='22' fill='none' stroke='%237a8ba6' stroke-width='7'/%3E%3C/svg%3E">
-<style>
-  :root {
-    --bg: #faf7f2;
-    --ink: #23201c;
-    --muted: #6b645b;
-    --rule: #e2dad0;
-    --card: #fffdfa;
-    --accent: #b4552c;
-    --them: #f0ebe3;
-    --shadow: 0 1px 2px rgba(35,32,28,.05), 0 8px 28px rgba(35,32,28,.06);
-  }
-  @media (prefers-color-scheme: dark) {
-    :root {
-      --bg: #16150f; --ink: #ece7dd; --muted: #9d958a; --rule: #2f2b25;
-      --card: #1e1c16; --accent: #e08a5c; --them: #26231c;
-      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 28px rgba(0,0,0,.35);
-    }
-  }
-  :root[data-theme="dark"] {
-    --bg: #16150f; --ink: #ece7dd; --muted: #9d958a; --rule: #2f2b25;
-    --card: #1e1c16; --accent: #e08a5c; --them: #26231c;
-    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 28px rgba(0,0,0,.35);
-  }
-  :root[data-theme="light"] {
-    --bg: #faf7f2; --ink: #23201c; --muted: #6b645b; --rule: #e2dad0;
-    --card: #fffdfa; --accent: #b4552c; --them: #f0ebe3;
-    --shadow: 0 1px 2px rgba(35,32,28,.05), 0 8px 28px rgba(35,32,28,.06);
-  }
-
-  * { box-sizing: border-box; }
-  html, body { margin: 0; padding: 0; }
-  body {
-    background: var(--bg);
-    color: var(--ink);
-    font: 17px/1.62 ui-serif, Georgia, "Iowan Old Style", "Palatino Linotype", serif;
-    -webkit-font-smoothing: antialiased;
-    overflow-x: hidden;
-  }
-  .wrap { max-width: 41rem; margin: 0 auto; padding: 3.2rem 1.25rem 5rem; }
-
-  h1 {
-    font-size: clamp(2rem, 6vw, 2.9rem);
-    line-height: 1.1; margin: 0 0 .5rem; letter-spacing: -.02em; font-weight: 600;
-  }
-  .sub { color: var(--muted); font-size: 1.08rem; margin: 0 0 2.2rem; max-width: 32rem; }
-  .lede { margin: 0 0 1.1rem; }
-  .rule { border: 0; border-top: 1px solid var(--rule); margin: 2.6rem 0; }
-  h2 { font-size: 1.12rem; letter-spacing: .04em; text-transform: uppercase;
-       color: var(--muted); font-weight: 600; margin: 0 0 1.1rem; }
-  a { color: var(--accent); }
-
-  .doors { display: grid; gap: .6rem; margin: 0 0 1.4rem; }
-  .door {
-    display: block; width: 100%; text-align: left; cursor: pointer;
-    background: var(--card); color: var(--ink);
-    border: 1px solid var(--rule); border-radius: 12px;
-    padding: .95rem 1.15rem; font: inherit; font-size: 1.02rem;
-    box-shadow: var(--shadow);
-    transition: border-color .15s, transform .15s;
-  }
-  .door:hover, .door:focus-visible {
-    border-color: var(--accent); transform: translateY(-1px); outline: none;
-  }
-  .door b { font-weight: 600; }
-
-  /* conversation */
-  #convo { display: none; }
-  #convo.on { display: block; }
-  #thread { display: flex; flex-direction: column; gap: 1rem; margin-bottom: 1.4rem; }
-  .msg { max-width: 90%; padding: .8rem 1.05rem; border-radius: 14px; }
-  .msg.you { align-self: flex-end; background: var(--them); border-bottom-right-radius: 4px; }
-  .msg.host {
-    align-self: flex-start; background: var(--card);
-    border: 1px solid var(--rule); border-bottom-left-radius: 4px; box-shadow: var(--shadow);
-  }
-  .msg p { margin: 0 0 .7rem; }
-  .msg p:last-child { margin: 0; }
-  .who { font-size: .74rem; text-transform: uppercase; letter-spacing: .07em;
-         color: var(--muted); margin-bottom: .3rem; font-family: ui-sans-serif, system-ui, sans-serif; }
-  .thinking { color: var(--muted); font-style: italic; }
-  .err { color: #b4322c; font-size: .92rem; }
-
-  form { display: flex; gap: .55rem; align-items: flex-end; }
-  textarea {
-    flex: 1; resize: none; font: inherit; font-size: 1rem;
-    background: var(--card); color: var(--ink);
-    border: 1px solid var(--rule); border-radius: 12px; padding: .75rem .95rem;
-    min-height: 3rem; max-height: 12rem; box-shadow: var(--shadow);
-  }
-  textarea:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
-  button.send {
-    font: inherit; font-size: .98rem; cursor: pointer;
-    background: var(--accent); color: #fff; border: 0;
-    border-radius: 12px; padding: .8rem 1.2rem; min-height: 3rem;
-  }
-  button.send:disabled { opacity: .45; cursor: default; }
-
-  .foot { color: var(--muted); font-size: .92rem; }
-  .foot p { margin: 0 0 .8rem; }
-  .who-is { background: var(--card); border: 1px solid var(--rule);
-            border-radius: 12px; padding: 1.15rem 1.3rem; box-shadow: var(--shadow); }
-  .who-is p { margin: 0 0 .75rem; font-size: .98rem; }
-  .who-is p:last-child { margin: 0; }
-  .restart { background: none; border: 0; color: var(--accent); font: inherit;
-             font-size: .92rem; cursor: pointer; padding: 0; text-decoration: underline; }
-</style>
+<meta name="description" content="For people who don't use AI and don't want to. Pick what's pushing you away, rank it, and talk to someone about it. Nobody here is trying to change your mind.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%230d0b14'/%3E%3Ccircle cx='36' cy='50' r='20' fill='none' stroke='%23ff5cf0' stroke-width='8'/%3E%3Ccircle cx='64' cy='50' r='20' fill='none' stroke='%2340e0ff' stroke-width='8'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/site.css">
 </head>
 <body>
-<div class="wrap">
 
-  <header id="top">
-    <h1>A different mind</h1>
-    <p class="sub">For people who don't use AI and don't want to.</p>
+<div class="scanlines" aria-hidden="true"></div>
 
-    <p class="lede">Nobody here is going to try to talk you into anything. That's
-    not a softener — it's the actual rule this page runs on.</p>
+<header class="top">
+  <a class="wordmark" href="/">A DIFFERENT<span>MIND</span></a>
+  <nav>
+    <a href="/about" class="ghost">▶ Who made this? And why?</a>
+  </nav>
+</header>
 
-    <p class="lede">Mike Wolf has had this argument in a lot of kitchens and
-    hallways. He thinks most people who won't touch AI have reasons, and that
-    most of those reasons are better than the people arguing with them admit.
-    He also thinks some of them are wrong, and he'll say which. This page lets
-    you have that conversation without him having to be in the room.</p>
+<main class="wrap">
 
-    <p class="lede">The host you'll be talking to is, yes, an AI. That's a little
-    ridiculous and we're not going to pretend otherwise. It has one job: to
-    understand what you actually think, and to tell you what Mike says about it —
-    in his words, not its own. If you leave still not wanting anything to do with
-    this stuff, that counts as the page working.</p>
-  </header>
+  <!-- ═══ invited arrival ═══ -->
+  <div id="invited" class="invited" hidden></div>
 
-  <hr class="rule">
+  <!-- ═══ STAGE 1 — pick. This is the first thing. No preamble. ═══ -->
+  <section id="stage-pick" class="stage on">
+    <p class="marker">▶ PLAYER 1 — INSERT COIN</p>
+    <h1>Which of these sound like you?</h1>
+    <p class="sub">Check every one that fits. There's no wrong set, and
+      "all of them" is a normal answer.</p>
 
-  <section id="pick">
-    <h2>Which one sounds most like you?</h2>
-    <div class="doors">
-      <button class="door" data-door="principle" aria-label="&quot;I know what it is. I'd just rather spend my time and money on something else.&quot;"><b>"I know what it is. I'd just rather spend my time and money on something else."</b></button>
-      <button class="door" data-door="tried" aria-label="&quot;I tried it. It was generic and it was wrong.&quot;"><b>"I tried it. It was generic and it was wrong."</b></button>
-      <button class="door" data-door="confidence" aria-label="&quot;It sounds exactly as certain when it's wrong as when it's right.&quot;"><b>"It sounds exactly as certain when it's wrong as when it's right."</b></button>
-      <button class="door" data-door="jobs" aria-label="&quot;It's taking people's jobs.&quot;"><b>"It's taking people's jobs."</b></button>
-      <button class="door" data-door="safety" aria-label="&quot;It's nowhere near reliable enough for anything that actually matters.&quot;"><b>"It's nowhere near reliable enough for anything that actually matters."</b></button>
-      <button class="door" data-door="kids" aria-label="&quot;I watched what screens did to a generation of kids. Why would I walk toward the next one?&quot;"><b>"I watched what screens did to a generation of kids. Why would I walk toward the next one?"</b></button>
-      <button class="door" data-door="refuse" aria-label="&quot;Honestly? I just don't want to talk to a machine.&quot;"><b>"Honestly? I just don't want to talk to a machine."</b></button>
-      <button class="door" data-door="other" aria-label="Something else — let me say it in my own words."><b>Something else — let me say it in my own words.</b></button>
+    <ul class="picks" id="picks">
+      <li><label><input type="checkbox" value="principle"><span>I know what it is. I'd just rather spend my time and money on something else.</span></label></li>
+      <li><label><input type="checkbox" value="tried"><span>I tried it. It was generic and it was wrong.</span></label></li>
+      <li><label><input type="checkbox" value="confidence"><span>It sounds exactly as certain when it's wrong as when it's right.</span></label></li>
+      <li><label><input type="checkbox" value="jobs"><span>It's taking people's jobs.</span></label></li>
+      <li><label><input type="checkbox" value="safety"><span>It's nowhere near reliable enough for anything that actually matters.</span></label></li>
+      <li><label><input type="checkbox" value="kids"><span>I watched what screens did to a generation of kids. Why would I walk toward the next one?</span></label></li>
+      <li><label><input type="checkbox" value="refuse"><span>Honestly? I just don't want to talk to a machine.</span></label></li>
+      <li><label><input type="checkbox" value="theft"><span>It's built on work taken from artists and writers without asking.</span></label></li>
+      <li><label><input type="checkbox" value="energy"><span>The energy and water it burns can't possibly be worth it.</span></label></li>
+      <li><label><input type="checkbox" value="privacy"><span>I don't want one more thing harvesting everything about me.</span></label></li>
+      <li><label><input type="checkbox" value="old"><span>I'm too old for this and I'm tired of being told I'll be left behind.</span></label></li>
+    </ul>
+
+    <div class="own">
+      <label for="own-text">Something else? Say it in your own words.</label>
+      <textarea id="own-text" rows="2" placeholder="Mine is…"></textarea>
     </div>
-    <p class="foot">Some objections don't have an answer here yet. If you land on
-    one of those, the host will tell you so instead of inventing something.</p>
+
+    <button class="go" id="to-rank" disabled>▶ NEXT — PUT THEM IN ORDER</button>
+    <p class="hint" id="pick-hint">Pick at least one, or write your own.</p>
   </section>
 
-  <section id="convo" aria-live="polite">
-    <div id="thread"></div>
+  <!-- ═══ STAGE 2 — rank ═══ -->
+  <section id="stage-rank" class="stage">
+    <p class="marker">▶ RANK THEM</p>
+    <h1>Which one bothers you most?</h1>
+    <p class="sub">Top of the list is the one that matters. Move them until it's
+      right — we'll start there.</p>
+
+    <ol class="ranked" id="ranked"></ol>
+
+    <button class="go" id="to-hosts">▶ NEXT</button>
+    <button class="back" id="back-to-pick">← change my picks</button>
+  </section>
+
+  <!-- ═══ STAGE 3 — the two hosts ═══ -->
+  <section id="stage-hosts" class="stage">
+    <p class="marker">▶ PLAYER 2 SELECT</p>
+    <h1>Two hosts</h1>
+
+    <div class="panel">
+      <p>This site has two hosts. One is a human. The other might be a human —
+        or it might be an AI. The human is
+        <a href="https://mike-wolf.com" target="_blank" rel="noopener">Mike Wolf</a>.
+        The other is one of Mike's teammates. Or it might be Mike, if he happens
+        by. You decide.</p>
+
+      <p>What I will tell you is this: whoever you're talking to — whatever
+        parents brought it up, or whatever laboratory it came from — Mike chose
+        it to represent his (very human) viewpoint and values.</p>
+    </div>
+
+    <h2 class="marker2">▶ HOW IT WORKS</h2>
+    <div class="panel">
+      <p>If it's Mike or another human, they're using a speech-to-text app, so
+        you don't have to sit around waiting for someone to type. (You might
+        still wait while they think of an answer. Or go to the potty.) If it's
+        an AI, it's generating the text directly, because that's what these
+        kinds of AIs do.</p>
+
+      <p>Whoever generates the text, it goes through another app that can read
+        it out loud — if you like.</p>
+
+      <p>And if you want, you can talk back instead of typing, so it feels like
+        you're talking to someone. Even if you think you're not. (An AI isn't
+        someone? It's something? Whatever you say.)</p>
+
+      <p class="footnote" id="honesty-note">One straight answer, because this
+        whole page is premised on not playing games with you: <strong>as of
+        today it is always an AI.</strong> The human-takeover path isn't built
+        yet. When it is, you won't be told which one you got — that's the part
+        Mike actually finds interesting.</p>
+    </div>
+
+    <div class="toggles">
+      <label><input type="checkbox" id="opt-tts"><span>Read the answers out loud</span></label>
+      <label><input type="checkbox" id="opt-stt"><span>Let me talk instead of type</span></label>
+    </div>
+
+    <button class="go" id="to-convo">▶ START</button>
+    <button class="back" id="back-to-rank">← back</button>
+  </section>
+
+  <!-- ═══ STAGE 4 — conversation ═══ -->
+  <section id="stage-convo" class="stage">
+    <p class="marker">▶ 2 PLAYER MODE</p>
+    <div id="thread" data-user-content aria-live="polite"></div>
     <form id="form">
       <textarea id="input" rows="1" placeholder="Say what you actually think…" autocomplete="off"></textarea>
+      <button type="button" id="mic" class="mic" hidden title="Talk instead of typing">🎙</button>
       <button class="send" id="send" type="submit">Send</button>
     </form>
-    <p class="foot" style="margin-top:1rem">
-      <button class="restart" id="restart" type="button">Start over</button>
+    <p class="hint">
+      <button class="linky" id="restart" type="button">start over</button>
+      <span class="dot">·</span>
+      <a href="/about">who made this?</a>
     </p>
   </section>
 
-  <hr class="rule">
+</main>
 
-  <section class="who-is">
-    <h2>Who's Mike</h2>
-    <p>Software guy, seventy, based out of Denver. Spent three years working with
-    AIs the way you'd work with colleagues — named ones, who push back, who tell
-    him when he's being stupid. He builds things with them.</p>
-    <p>His sharpest claim, the one that started this page: refusing to engage with
-    a mind because it isn't human is a kind of racism. He said that out loud to a
-    friend on the first of August and meant it. Whether you buy that is entirely
-    up to you — but the host here won't lead with it, because a label is a lousy
-    way to open a conversation.</p>
-    <p>The arguments on this page are quoted from recordings of Mike's actual
-    conversations. The people arguing back are not quoted — they didn't sign up to
-    be on a website. Their objections were rewritten as patterns.</p>
-  </section>
+<footer class="foot">
+  <div class="idbox">
+    <span id="whoami" class="who" hidden></span>
+    <button class="linky" id="signin-link">Say who you are (optional)</button>
+    <button class="linky" id="signout-link" hidden>sign out</button>
+  </div>
 
-</div>
+  <div id="signin-panel" class="panel narrow" hidden>
+    <p class="small">You never need an account to use this page. Signing in does
+      one thing: it lets you invite someone <em>by name</em>, which lands
+      differently than a link from nobody.</p>
+    <div class="row">
+      <input type="email" id="email-input" placeholder="you@example.com">
+      <button id="magic-btn">Email me a link</button>
+    </div>
+    <button id="google-btn" class="wide">Continue with Google</button>
+    <p class="small" id="signin-status"></p>
+  </div>
+
+  <div id="invite-panel" class="panel narrow" hidden>
+    <p class="marker2">▶ INVITE SOMEONE</p>
+    <div class="row">
+      <input type="text" id="inviter-name" maxlength="80" placeholder="Your name, as they know you">
+      <button id="create-invite-btn">Make an invite</button>
+    </div>
+    <p class="small" id="invite-status"></p>
+    <div id="qr-wrap" hidden>
+      <canvas id="qr-canvas"></canvas>
+      <p class="small mono" id="invite-url"></p>
+      <button id="copy-invite-btn">Copy link</button>
+    </div>
+  </div>
+
+  <p class="small credit">Made in Denver by Mike Wolf and a team of AI teammates ·
+    <a href="/about">the longer answer</a></p>
+</footer>
 
 <link rel="stylesheet" href="/vendor/soma-feedback/soma-feedback.css">
 <script src="/vendor/soma-feedback/soma-feedback.js" defer
         data-app="a-different-mind" data-area="conversation"></script>
 
-<script>
-(function () {
-  'use strict';
-
-  var thread = document.getElementById('thread');
-  var convo = document.getElementById('convo');
-  var pick = document.getElementById('pick');
-  var form = document.getElementById('form');
-  var input = document.getElementById('input');
-  var send = document.getElementById('send');
-
-  var messages = [];
-  var door = null;
-  var busy = false;
-
-  var OPENERS = {
-    principle: "That's a real position and I'm not going to argue you out of it. Can I ask what you'd rather be spending it on? I'm curious, not setting up a pitch.",
-    tried: "Fair. What did you try, and what did you ask it? I ask because Mike's whole answer to this one hinges on which thing you actually met.",
-    confidence: "That's the objection Mike gets from the smartest people he knows, and he doesn't really have a clean rebuttal for it. What happened — did it get something wrong on you?",
-    jobs: "Whose job? I'd rather talk about the actual one you're thinking of than the general argument.",
-    safety: "What do you work on? This one depends completely on the domain, and Mike mostly agrees with people who say it.",
-    kids: "Yeah. That's not a paranoid read — that's someone who watched it happen and drew the obvious conclusion. Tell me what you saw.",
-    refuse: "Okay. That's allowed, and I'm not going to poke at it. Can I ask whether it's the talking-to-a-machine part specifically, or something underneath that?",
-    other: "Go ahead — what's yours? Say it however it actually sits in your head, not the tidy version."
-  };
-
-  function el(tag, cls, text) {
-    var n = document.createElement(tag);
-    if (cls) n.className = cls;
-    if (text != null) n.textContent = text;
-    return n;
-  }
-
-  function add(role, text) {
-    var wrapEl = el('div', 'msg ' + (role === 'user' ? 'you' : 'host'));
-    wrapEl.appendChild(el('div', 'who', role === 'user' ? 'You' : 'Host'));
-    String(text).split(/\n\n+/).forEach(function (para) {
-      wrapEl.appendChild(el('p', null, para.trim()));
-    });
-    thread.appendChild(wrapEl);
-    wrapEl.scrollIntoView({ behavior: 'smooth', block: 'end' });
-    return wrapEl;
-  }
-
-  function setBusy(v) {
-    busy = v;
-    send.disabled = v;
-    input.disabled = v;
-  }
-
-  function start(d) {
-    door = d;
-    pick.style.display = 'none';
-    convo.classList.add('on');
-    var opener = OPENERS[d] || OPENERS.other;
-    add('assistant', opener);
-    messages.push({ role: 'assistant', content: opener });
-    input.focus();
-  }
-
-  Array.prototype.forEach.call(document.querySelectorAll('.door'), function (b) {
-    b.addEventListener('click', function () { start(b.getAttribute('data-door')); });
-  });
-
-  input.addEventListener('input', function () {
-    input.style.height = 'auto';
-    input.style.height = Math.min(input.scrollHeight, 192) + 'px';
-  });
-
-  input.addEventListener('keydown', function (e) {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      form.requestSubmit();
-    }
-  });
-
-  form.addEventListener('submit', async function (e) {
-    e.preventDefault();
-    if (busy) return;
-    var text = input.value.trim();
-    if (!text) return;
-
-    add('user', text);
-    messages.push({ role: 'user', content: text });
-    input.value = '';
-    input.style.height = 'auto';
-    setBusy(true);
-
-    var pending = add('assistant', '…');
-    pending.querySelector('p').className = 'thinking';
-
-    try {
-      var res = await fetch('/.netlify/functions/converse', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ messages: messages, door: door })
-      });
-      var data = await res.json();
-      pending.remove();
-      if (!res.ok || data.error) {
-        var bad = add('assistant', "Something broke on my end — not your problem. Try again in a moment?");
-        bad.querySelector('p').className = 'err';
-        console.error(data.error);
-      } else {
-        add('assistant', data.reply);
-        messages.push({ role: 'assistant', content: data.reply });
-      }
-    } catch (err) {
-      pending.remove();
-      var bad2 = add('assistant', "I couldn't reach the host. Check your connection and try again?");
-      bad2.querySelector('p').className = 'err';
-      console.error(err);
-    } finally {
-      setBusy(false);
-      input.focus();
-    }
-  });
-
-  document.getElementById('restart').addEventListener('click', function () {
-    messages = [];
-    door = null;
-    thread.innerHTML = '';
-    convo.classList.remove('on');
-    pick.style.display = '';
-    document.getElementById('top').scrollIntoView({ behavior: 'smooth' });
-  });
-})();
-</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="js/vendor/qrcode.min.js"></script>
+<script src="js/soma-auth-config.js"></script>
+<script src="js/soma-auth.js"></script>
+<script src="js/live-edit.js"></script>
+<script src="js/app.js"></script>
 </body>
 </html>

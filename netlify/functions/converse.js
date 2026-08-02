@@ -192,25 +192,72 @@ Never say "I understand how you feel" — show it instead by being specific abou
 what they said.
 `.trim();
 
-const DOOR_PRIMERS = {
-  principle: 'They came in through the door: "I know what it is. I\'d rather spend my time and money elsewhere."',
-  tried: 'They came in through the door: "I tried it. It was generic and wrong."',
-  confidence: 'They came in through the door: "It sounds equally sure whether it\'s right or wrong."',
-  jobs: 'They came in through the door: "It\'s taking people\'s jobs."',
-  safety: 'They came in through the door: "It\'s not reliable enough for anything that matters."',
-  kids: 'They came in through the door: "I saw what screens did to kids." GO SLOW HERE.',
-  refuse: 'They came in through the door: "I just don\'t want to talk to a machine." Do NOT lead with the racism argument — earn it first.',
-  other: 'They came in through the free-text door.',
+const LABELS = {
+  principle: "I'd rather spend my time and money elsewhere",
+  tried: 'I tried it — it was generic and wrong',
+  confidence: "It sounds as certain when it's wrong as when it's right",
+  jobs: "It's taking people's jobs",
+  safety: 'Not reliable enough for anything that matters',
+  kids: 'What screens did to a generation of kids',
+  refuse: "I don't want to talk to a machine",
+  theft: 'Built on work taken from artists and writers',
+  energy: "The energy and water can't be worth it",
+  privacy: 'One more thing harvesting everything about me',
+  old: "Too old for this, tired of being told I'll be left behind",
+  own: 'Their own words',
 };
 
-function callAnthropic(messages, door, opener) {
+const CARE = {
+  kids: 'GO SLOW. Do not be clever. Do not correct first. If they are speaking from personal grief, drop the argument entirely.',
+  refuse: 'Do NOT lead with the racism argument — earn it first, or not at all.',
+  theft: 'Mike has NO recorded answer. Say so; do not improvise one in his voice.',
+  energy: 'Mike has NO recorded answer. Say so; do not improvise one in his voice.',
+  privacy: 'Mike has NO recorded answer. Say so; do not improvise one in his voice.',
+  old: 'Mike has NO recorded answer. Say so. Also: being told they will be left behind is a lousy recruitment pitch and you should not repeat it.',
+};
+
+function buildContext(payload) {
+  const ranked = Array.isArray(payload.ranked) ? payload.ranked.slice(0, 12) : [];
+  const own = typeof payload.own === 'string' ? payload.own.slice(0, 600) : '';
+  const lines = [];
+
+  if (ranked.length) {
+    lines.push('They picked these, and RANKED them — first is what bothers them most:');
+    ranked.forEach((k, i) => {
+      const label = k === 'own' ? `"${own}"` : (LABELS[k] || k);
+      lines.push(`  ${i + 1}. ${label}${CARE[k] ? '   [' + CARE[k] + ']' : ''}`);
+    });
+    lines.push('');
+    lines.push('Start at the top of that list. Do not march through the rest — they are');
+    lines.push('context for what this person cares about, not an agenda to work through.');
+    lines.push('Let them steer.');
+  } else if (own) {
+    lines.push(`They wrote their own: "${own}"`);
+  }
+
+  if (payload.invitedBy === '__anonymous__') {
+    lines.push('');
+    lines.push('They arrived on an invite from someone who chose NOT to name themselves.');
+    lines.push('Do not speculate about who it was or why. If they raise it, be matter-of-fact.');
+  } else if (typeof payload.invitedBy === 'string' && payload.invitedBy) {
+    lines.push('');
+    lines.push(`They were invited here by ${payload.invitedBy.slice(0, 80)}, who named themselves.`);
+    lines.push('That relationship is real context — someone who knows them thought this was');
+    lines.push('worth their time. You may refer to it. Do NOT use it as leverage ("well,');
+    lines.push('X thought you should hear this") — that turns a friend into a debt.');
+  }
+
+  return lines.join('\n');
+}
+
+function callAnthropic(messages, context, opener) {
   return new Promise(function (resolve, reject) {
     let system = SYSTEM_PROMPT;
-    if (door && DOOR_PRIMERS[door]) {
-      system += '\n\n# This conversation\n' + DOOR_PRIMERS[door];
+    if (context) {
+      system += '\n\n# This conversation\n' + context;
     }
     if (opener) {
-      system += '\nYou already opened by saying: "' + opener + '"';
+      system += '\n\nYou already opened by saying: "' + opener + '"';
     }
     const payload = JSON.stringify({
       model: MODEL,
@@ -307,7 +354,7 @@ exports.handler = async function (event) {
   }
 
   try {
-    const reply = await callAnthropic(clean, payload.door, opener);
+    const reply = await callAnthropic(clean, buildContext(payload), opener);
     return { statusCode: 200, headers: CORS, body: JSON.stringify({ reply: reply }) };
   } catch (err) {
     return {

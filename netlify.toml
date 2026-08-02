@@ -5,3 +5,9 @@
 [functions]
   directory = "netlify/functions"
   node_bundler = "none"
+
+# Pretty URLs: /about instead of /about.html
+[[redirects]]
+  from = "/about"
+  to = "/about.html"
+  status = 200
