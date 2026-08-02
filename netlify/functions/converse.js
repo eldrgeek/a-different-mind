@@ -203,11 +203,14 @@ const DOOR_PRIMERS = {
   other: 'They came in through the free-text door.',
 };
 
-function callAnthropic(messages, door) {
+function callAnthropic(messages, door, opener) {
   return new Promise(function (resolve, reject) {
     let system = SYSTEM_PROMPT;
     if (door && DOOR_PRIMERS[door]) {
       system += '\n\n# This conversation\n' + DOOR_PRIMERS[door];
+    }
+    if (opener) {
+      system += '\nYou already opened by saying: "' + opener + '"';
     }
     const payload = JSON.stringify({
       model: MODEL,
@@ -291,12 +294,20 @@ exports.handler = async function (event) {
     .filter(function (m) { return m && (m.role === 'user' || m.role === 'assistant') && typeof m.content === 'string'; })
     .map(function (m) { return { role: m.role, content: m.content.slice(0, 6000) }; });
 
-  if (!clean.length || clean[0].role !== 'user') {
-    return { statusCode: 400, headers: CORS, body: JSON.stringify({ error: 'Conversation must start with a person.' }) };
+  // The client seeds the thread with the host's scripted opener, so the array
+  // legitimately starts with an assistant turn. The API requires a user turn
+  // first — so lift the opener into the system prompt rather than losing it.
+  let opener = null;
+  while (clean.length && clean[0].role === 'assistant') {
+    opener = clean.shift().content;
+  }
+
+  if (!clean.length) {
+    return { statusCode: 400, headers: CORS, body: JSON.stringify({ error: 'Nothing to reply to yet.' }) };
   }
 
   try {
-    const reply = await callAnthropic(clean, payload.door);
+    const reply = await callAnthropic(clean, payload.door, opener);
     return { statusCode: 200, headers: CORS, body: JSON.stringify({ reply: reply }) };
   } catch (err) {
     return {
