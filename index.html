@@ -1,0 +1,320 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>A Different Mind</title>
+<meta name="description" content="For people who don't use AI and don't want to. Nobody here is going to try to change your mind.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='34' cy='50' r='22' fill='none' stroke='%23c8663a' stroke-width='7'/%3E%3Ccircle cx='66' cy='50' r='22' fill='none' stroke='%237a8ba6' stroke-width='7'/%3E%3C/svg%3E">
+<style>
+  :root {
+    --bg: #faf7f2;
+    --ink: #23201c;
+    --muted: #6b645b;
+    --rule: #e2dad0;
+    --card: #fffdfa;
+    --accent: #b4552c;
+    --them: #f0ebe3;
+    --shadow: 0 1px 2px rgba(35,32,28,.05), 0 8px 28px rgba(35,32,28,.06);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #16150f; --ink: #ece7dd; --muted: #9d958a; --rule: #2f2b25;
+      --card: #1e1c16; --accent: #e08a5c; --them: #26231c;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 28px rgba(0,0,0,.35);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #16150f; --ink: #ece7dd; --muted: #9d958a; --rule: #2f2b25;
+    --card: #1e1c16; --accent: #e08a5c; --them: #26231c;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 28px rgba(0,0,0,.35);
+  }
+  :root[data-theme="light"] {
+    --bg: #faf7f2; --ink: #23201c; --muted: #6b645b; --rule: #e2dad0;
+    --card: #fffdfa; --accent: #b4552c; --them: #f0ebe3;
+    --shadow: 0 1px 2px rgba(35,32,28,.05), 0 8px 28px rgba(35,32,28,.06);
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font: 17px/1.62 ui-serif, Georgia, "Iowan Old Style", "Palatino Linotype", serif;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+  .wrap { max-width: 41rem; margin: 0 auto; padding: 3.2rem 1.25rem 5rem; }
+
+  h1 {
+    font-size: clamp(2rem, 6vw, 2.9rem);
+    line-height: 1.1; margin: 0 0 .5rem; letter-spacing: -.02em; font-weight: 600;
+  }
+  .sub { color: var(--muted); font-size: 1.08rem; margin: 0 0 2.2rem; max-width: 32rem; }
+  .lede { margin: 0 0 1.1rem; }
+  .rule { border: 0; border-top: 1px solid var(--rule); margin: 2.6rem 0; }
+  h2 { font-size: 1.12rem; letter-spacing: .04em; text-transform: uppercase;
+       color: var(--muted); font-weight: 600; margin: 0 0 1.1rem; }
+  a { color: var(--accent); }
+
+  .doors { display: grid; gap: .6rem; margin: 0 0 1.4rem; }
+  .door {
+    display: block; width: 100%; text-align: left; cursor: pointer;
+    background: var(--card); color: var(--ink);
+    border: 1px solid var(--rule); border-radius: 12px;
+    padding: .95rem 1.15rem; font: inherit; font-size: 1.02rem;
+    box-shadow: var(--shadow);
+    transition: border-color .15s, transform .15s;
+  }
+  .door:hover, .door:focus-visible {
+    border-color: var(--accent); transform: translateY(-1px); outline: none;
+  }
+  .door b { font-weight: 600; }
+
+  /* conversation */
+  #convo { display: none; }
+  #convo.on { display: block; }
+  #thread { display: flex; flex-direction: column; gap: 1rem; margin-bottom: 1.4rem; }
+  .msg { max-width: 90%; padding: .8rem 1.05rem; border-radius: 14px; }
+  .msg.you { align-self: flex-end; background: var(--them); border-bottom-right-radius: 4px; }
+  .msg.host {
+    align-self: flex-start; background: var(--card);
+    border: 1px solid var(--rule); border-bottom-left-radius: 4px; box-shadow: var(--shadow);
+  }
+  .msg p { margin: 0 0 .7rem; }
+  .msg p:last-child { margin: 0; }
+  .who { font-size: .74rem; text-transform: uppercase; letter-spacing: .07em;
+         color: var(--muted); margin-bottom: .3rem; font-family: ui-sans-serif, system-ui, sans-serif; }
+  .thinking { color: var(--muted); font-style: italic; }
+  .err { color: #b4322c; font-size: .92rem; }
+
+  form { display: flex; gap: .55rem; align-items: flex-end; }
+  textarea {
+    flex: 1; resize: none; font: inherit; font-size: 1rem;
+    background: var(--card); color: var(--ink);
+    border: 1px solid var(--rule); border-radius: 12px; padding: .75rem .95rem;
+    min-height: 3rem; max-height: 12rem; box-shadow: var(--shadow);
+  }
+  textarea:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+  button.send {
+    font: inherit; font-size: .98rem; cursor: pointer;
+    background: var(--accent); color: #fff; border: 0;
+    border-radius: 12px; padding: .8rem 1.2rem; min-height: 3rem;
+  }
+  button.send:disabled { opacity: .45; cursor: default; }
+
+  .foot { color: var(--muted); font-size: .92rem; }
+  .foot p { margin: 0 0 .8rem; }
+  .who-is { background: var(--card); border: 1px solid var(--rule);
+            border-radius: 12px; padding: 1.15rem 1.3rem; box-shadow: var(--shadow); }
+  .who-is p { margin: 0 0 .75rem; font-size: .98rem; }
+  .who-is p:last-child { margin: 0; }
+  .restart { background: none; border: 0; color: var(--accent); font: inherit;
+             font-size: .92rem; cursor: pointer; padding: 0; text-decoration: underline; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header id="top">
+    <h1>A different mind</h1>
+    <p class="sub">For people who don't use AI and don't want to.</p>
+
+    <p class="lede">Nobody here is going to try to talk you into anything. That's
+    not a softener — it's the actual rule this page runs on.</p>
+
+    <p class="lede">Mike Wolf has had this argument in a lot of kitchens and
+    hallways. He thinks most people who won't touch AI have reasons, and that
+    most of those reasons are better than the people arguing with them admit.
+    He also thinks some of them are wrong, and he'll say which. This page lets
+    you have that conversation without him having to be in the room.</p>
+
+    <p class="lede">The host you'll be talking to is, yes, an AI. That's a little
+    ridiculous and we're not going to pretend otherwise. It has one job: to
+    understand what you actually think, and to tell you what Mike says about it —
+    in his words, not its own. If you leave still not wanting anything to do with
+    this stuff, that counts as the page working.</p>
+  </header>
+
+  <hr class="rule">
+
+  <section id="pick">
+    <h2>Which one sounds most like you?</h2>
+    <div class="doors">
+      <button class="door" data-door="principle"><b>"I know what it is. I'd just rather spend my time and money on something else."</b></button>
+      <button class="door" data-door="tried"><b>"I tried it. It was generic and it was wrong."</b></button>
+      <button class="door" data-door="confidence"><b>"It sounds exactly as certain when it's wrong as when it's right."</b></button>
+      <button class="door" data-door="jobs"><b>"It's taking people's jobs."</b></button>
+      <button class="door" data-door="safety"><b>"It's nowhere near reliable enough for anything that actually matters."</b></button>
+      <button class="door" data-door="kids"><b>"I watched what screens did to a generation of kids. Why would I walk toward the next one?"</b></button>
+      <button class="door" data-door="refuse"><b>"Honestly? I just don't want to talk to a machine."</b></button>
+      <button class="door" data-door="other"><b>Something else — let me say it in my own words.</b></button>
+    </div>
+    <p class="foot">Some objections don't have an answer here yet. If you land on
+    one of those, the host will tell you so instead of inventing something.</p>
+  </section>
+
+  <section id="convo" aria-live="polite">
+    <div id="thread"></div>
+    <form id="form">
+      <textarea id="input" rows="1" placeholder="Say what you actually think…" autocomplete="off"></textarea>
+      <button class="send" id="send" type="submit">Send</button>
+    </form>
+    <p class="foot" style="margin-top:1rem">
+      <button class="restart" id="restart" type="button">Start over</button>
+    </p>
+  </section>
+
+  <hr class="rule">
+
+  <section class="who-is">
+    <h2>Who's Mike</h2>
+    <p>Software guy, seventy, based out of Denver. Spent three years working with
+    AIs the way you'd work with colleagues — named ones, who push back, who tell
+    him when he's being stupid. He builds things with them.</p>
+    <p>His sharpest claim, the one that started this page: refusing to engage with
+    a mind because it isn't human is a kind of racism. He said that out loud to a
+    friend on the first of August and meant it. Whether you buy that is entirely
+    up to you — but the host here won't lead with it, because a label is a lousy
+    way to open a conversation.</p>
+    <p>The arguments on this page are quoted from recordings of Mike's actual
+    conversations. The people arguing back are not quoted — they didn't sign up to
+    be on a website. Their objections were rewritten as patterns.</p>
+  </section>
+
+</div>
+
+<link rel="stylesheet" href="/vendor/soma-feedback/soma-feedback.css">
+<script src="/vendor/soma-feedback/soma-feedback.js" defer
+        data-app="a-different-mind" data-area="conversation"></script>
+
+<script>
+(function () {
+  'use strict';
+
+  var thread = document.getElementById('thread');
+  var convo = document.getElementById('convo');
+  var pick = document.getElementById('pick');
+  var form = document.getElementById('form');
+  var input = document.getElementById('input');
+  var send = document.getElementById('send');
+
+  var messages = [];
+  var door = null;
+  var busy = false;
+
+  var OPENERS = {
+    principle: "That's a real position and I'm not going to argue you out of it. Can I ask what you'd rather be spending it on? I'm curious, not setting up a pitch.",
+    tried: "Fair. What did you try, and what did you ask it? I ask because Mike's whole answer to this one hinges on which thing you actually met.",
+    confidence: "That's the objection Mike gets from the smartest people he knows, and he doesn't really have a clean rebuttal for it. What happened — did it get something wrong on you?",
+    jobs: "Whose job? I'd rather talk about the actual one you're thinking of than the general argument.",
+    safety: "What do you work on? This one depends completely on the domain, and Mike mostly agrees with people who say it.",
+    kids: "Yeah. That's not a paranoid read — that's someone who watched it happen and drew the obvious conclusion. Tell me what you saw.",
+    refuse: "Okay. That's allowed, and I'm not going to poke at it. Can I ask whether it's the talking-to-a-machine part specifically, or something underneath that?",
+    other: "Go ahead — what's yours? Say it however it actually sits in your head, not the tidy version."
+  };
+
+  function el(tag, cls, text) {
+    var n = document.createElement(tag);
+    if (cls) n.className = cls;
+    if (text != null) n.textContent = text;
+    return n;
+  }
+
+  function add(role, text) {
+    var wrapEl = el('div', 'msg ' + (role === 'user' ? 'you' : 'host'));
+    wrapEl.appendChild(el('div', 'who', role === 'user' ? 'You' : 'Host'));
+    String(text).split(/\n\n+/).forEach(function (para) {
+      wrapEl.appendChild(el('p', null, para.trim()));
+    });
+    thread.appendChild(wrapEl);
+    wrapEl.scrollIntoView({ behavior: 'smooth', block: 'end' });
+    return wrapEl;
+  }
+
+  function setBusy(v) {
+    busy = v;
+    send.disabled = v;
+    input.disabled = v;
+  }
+
+  function start(d) {
+    door = d;
+    pick.style.display = 'none';
+    convo.classList.add('on');
+    var opener = OPENERS[d] || OPENERS.other;
+    add('assistant', opener);
+    messages.push({ role: 'assistant', content: opener });
+    input.focus();
+  }
+
+  Array.prototype.forEach.call(document.querySelectorAll('.door'), function (b) {
+    b.addEventListener('click', function () { start(b.getAttribute('data-door')); });
+  });
+
+  input.addEventListener('input', function () {
+    input.style.height = 'auto';
+    input.style.height = Math.min(input.scrollHeight, 192) + 'px';
+  });
+
+  input.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      form.requestSubmit();
+    }
+  });
+
+  form.addEventListener('submit', async function (e) {
+    e.preventDefault();
+    if (busy) return;
+    var text = input.value.trim();
+    if (!text) return;
+
+    add('user', text);
+    messages.push({ role: 'user', content: text });
+    input.value = '';
+    input.style.height = 'auto';
+    setBusy(true);
+
+    var pending = add('assistant', '…');
+    pending.querySelector('p').className = 'thinking';
+
+    try {
+      var res = await fetch('/.netlify/functions/converse', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ messages: messages, door: door })
+      });
+      var data = await res.json();
+      pending.remove();
+      if (!res.ok || data.error) {
+        var bad = add('assistant', "Something broke on my end — not your problem. Try again in a moment?");
+        bad.querySelector('p').className = 'err';
+        console.error(data.error);
+      } else {
+        add('assistant', data.reply);
+        messages.push({ role: 'assistant', content: data.reply });
+      }
+    } catch (err) {
+      pending.remove();
+      var bad2 = add('assistant', "I couldn't reach the host. Check your connection and try again?");
+      bad2.querySelector('p').className = 'err';
+      console.error(err);
+    } finally {
+      setBusy(false);
+      input.focus();
+    }
+  });
+
+  document.getElementById('restart').addEventListener('click', function () {
+    messages = [];
+    door = null;
+    thread.innerHTML = '';
+    convo.classList.remove('on');
+    pick.style.display = '';
+    document.getElementById('top').scrollIntoView({ behavior: 'smooth' });
+  });
+})();
+</script>
+</body>
+</html>
