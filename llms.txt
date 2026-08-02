@@ -1,0 +1,38 @@
+# A Different Mind
+
+> A page for people who don't use AI and don't want to. A conversational host
+> presents Mike Wolf's arguments — as his, quoted — to someone who came in
+> skeptical, and is explicitly instructed not to try to win.
+
+Built 2026-08-02 by Mike Wolf + Claude (Opus 5). Society of Minds Aligned (SOMA).
+
+## What this is
+
+Seven objection patterns, extracted from 144,531 segments of Mike's real
+recorded conversations (2026-07-07 → 2026-08-02, Fieldy pendant), each paired
+with what he actually said in reply. A visitor picks the objection that sounds
+like them, or writes their own, and talks to an AI host that carries Mike's
+positions.
+
+## The rules the host runs on
+
+- A visitor who leaves still declining AI, but feeling heard, is a SUCCESS.
+  One who agrees because they were worn down is a FAILURE.
+- Steelman first, always. Name what's true in the objection before answering it.
+- Mike's sharpest argument — that refusing to engage with a non-human mind is a
+  kind of racism — is **earned, not deployed**. It is never an opening move. A
+  label closes the thing it is trying to open.
+- Four common objections (training-data theft, energy cost, privacy,
+  "I'm too old") have **no answer from Mike on record**. The host says so
+  plainly rather than improvising in his voice.
+
+## Provenance
+
+Mike's words are quoted verbatim — his to publish. The people who argued with
+him are **not** quoted; they were recorded in ordinary conversation and did not
+consent to a website. Their objections appear only as rewritten patterns.
+
+## Files
+
+- [Corpus](https://github.com/eldrgeek/a-different-mind/blob/main/CORPUS.md): every argument, its source date, and the handling notes
+- [Repo](https://github.com/eldrgeek/a-different-mind)
