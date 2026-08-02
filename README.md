@@ -71,16 +71,58 @@ python3 ~/Projects/SOMA/tools/ship/soma-ship-check.py https://a-different-mind.n
 
 `git push origin main` auto-deploys.
 
-## Known gaps
+## Editing the copy (SOMA §17 / §17a)
 
-- **No demo video** (SOMA-APP-STANDARD §7 wants a Lessig-style soma-cut film).
-- **GIS origin unregistered** — the feedback chip's *admin* sign-in will report
-  "no registered origin" until this site is added as an authorized JavaScript
-  origin on client `1072944905499-vm2v2i…`. Mike's console, Mike's call. Does not
-  affect visitors or the conversation.
-- **Other humans can't add their voices yet.** Mike asked for this — other people
-  making similar points alongside him. Currently only the feedback chip collects
-  anything. Next pass.
+Sign in as an admin. A small **Edit copy** bar appears bottom-left.
+
+1. **Edit copy** → click any sentence → type → **Enter**. Saved as a draft.
+2. **Review** → each draft gets three answers, not two: **Publish** (serve it to
+   everyone now), **Revise** (rewrite it right there — this is §17a's whole
+   point), **Drop**.
+3. Published rows are read by *every* visitor, signed in or not, before the page
+   knows anything about who they are.
+
+Storage is the shared `copy_overrides` table. It already was multi-app — RLS is
+`is_app_admin(app)` and canonical rows are world-readable — so this adopted it
+instead of forking a second one. **No migration was needed.**
+
+Matched on `(app, route, original_text, occurrence)`, never a DOM selector. The
+conversation thread is excluded from editing entirely: that's people talking,
+not site copy.
+
+## Invites
+
+Signed in → footer → **Make an invite** → link + QR. It carries your name.
+
+Without a name it still works and the arriving visitor is told, honestly, that
+*"someone who didn't want to say who they were invited you here."* An anonymous
+caller **cannot** claim someone else's name — the RPC drops any name it's handed
+when `auth.uid()` is null. Verified.
+
+Table: `site_invites`, RLS on with zero policies; both paths go through
+`site_invite_create` / `site_invite_lookup`. The anon key can mint and read one
+invite but cannot enumerate them.
+
+## Known gaps and one judgment call
+
+- **One line on the hosts page is mine, not Mike's.** His copy says one host
+  "might be a human — or it might be an AI… you decide." Right now it is always
+  an AI; the takeover path isn't built. Shipping that ambiguity to an audience
+  selected for suspicion, with no caveat, seemed like the worst possible thing
+  to be caught doing — so there's a short honesty note under How It Works
+  (`#honesty-note`). **If Mike disagrees, it's one click to delete with the live
+  editor.** The better fix is to build the takeover and make the line true.
+- **The admin editor's write path is unverified.** Everything readable was tested
+  live; saving a draft needs a real admin session, which needs Mike's login. The
+  insert payload was validated against the real table separately.
+- **Google sign-in will fail until the origin is registered** on GIS client
+  `1072944905499-vm2v2i…`. Mike's console. Magic-link sign-in works now.
+- **SOMA Auth allow-list is at 1948/2048 bytes** — 100 bytes of headroom for the
+  whole estate. The next app to adopt SOMA Auth may not fit.
+- **No demo video** (§7 wants a Lessig-style soma-cut film).
+- **Other humans still can't add their own voices.** Mike asked for this — other
+  people making similar points alongside him. Not built. Needs a decision from
+  him first: curated or open?
 
 ---
 
