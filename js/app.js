@@ -53,11 +53,35 @@
       .map(function (i) { return i.value; });
   }
 
+  /* Cap at five. Mike checked all eleven, then had a list too long to sort —
+   * which is the failure mode: an unranked pile is the same as no answer.
+   * Five is enough to have a real conversation about and short enough to
+   * actually order. The free-text box counts toward the five. */
+  var MAX_PICKS = 5;
+
+  function slotsUsed() {
+    return checked().length + ($('own-text').value.trim() ? 1 : 0);
+  }
+
   function refreshNext() {
     ownText = $('own-text').value.trim();
-    var any = checked().length || ownText;
-    $('to-rank').disabled = !any;
-    $('pick-hint').textContent = any ? '' : 'Pick at least one, or write your own.';
+    var used = slotsUsed();
+    var full = used >= MAX_PICKS;
+
+    // Lock the unchecked boxes at the cap rather than silently ignoring a
+    // click — a checkbox that does nothing when you click it reads as broken.
+    document.querySelectorAll('#picks input').forEach(function (i) {
+      i.disabled = full && !i.checked;
+      i.closest('label').classList.toggle('locked', i.disabled);
+    });
+    $('own-text').disabled = full && !ownText;
+
+    $('counter').textContent = used + ' of ' + MAX_PICKS;
+    $('counter').classList.toggle('full', full);
+    $('to-rank').disabled = !used;
+    $('pick-hint').textContent = !used
+      ? 'Pick at least one, or write your own.'
+      : (full ? "That's five. Uncheck one if you'd rather swap it out." : '');
   }
 
   document.querySelectorAll('#picks input').forEach(function (i) {
@@ -66,41 +90,111 @@
   $('own-text').addEventListener('input', refreshNext);
 
   /* ── ranking ──────────────────────────────────────────────────────────── */
+  function labelFor(key) { return key === 'own' ? ownText : LABELS[key]; }
+
   function renderRanked() {
     var ol = $('ranked');
     ol.innerHTML = '';
-    picked.forEach(function (key, idx) {
+    picked.forEach(function (key) {
       var li = document.createElement('li');
+      li.setAttribute('data-key', key);
+      li.tabIndex = 0;
+      li.setAttribute('role', 'listitem');
+      li.setAttribute('aria-label', labelFor(key) + ' — drag to reorder, or use arrow keys');
+
+      var grip = document.createElement('span');
+      grip.className = 'grip';
+      grip.setAttribute('aria-hidden', 'true');
+      grip.textContent = '⠿';
+      li.appendChild(grip);
 
       var txt = document.createElement('span');
       txt.className = 'txt';
-      txt.setAttribute('data-no-edit', '');   // visitor's own selection, not site copy
-      txt.textContent = key === 'own' ? ownText : LABELS[key];
+      txt.setAttribute('data-no-edit', '');   // visitor's own words, not site copy
+      txt.textContent = labelFor(key);
       li.appendChild(txt);
-
-      var mv = document.createElement('span');
-      mv.className = 'mv';
-      var up = document.createElement('button');
-      up.type = 'button'; up.textContent = '↑';
-      up.setAttribute('aria-label', 'Move up');
-      up.disabled = idx === 0;
-      up.onclick = function () { swap(idx, idx - 1); };
-      var dn = document.createElement('button');
-      dn.type = 'button'; dn.textContent = '↓';
-      dn.setAttribute('aria-label', 'Move down');
-      dn.disabled = idx === picked.length - 1;
-      dn.onclick = function () { swap(idx, idx + 1); };
-      mv.appendChild(up); mv.appendChild(dn);
-      li.appendChild(mv);
 
       ol.appendChild(li);
     });
   }
 
-  function swap(a, b) {
-    var t = picked[a]; picked[a] = picked[b]; picked[b] = t;
-    renderRanked();
+  function announce(key) {
+    var i = picked.indexOf(key);
+    $('rank-live').textContent = labelFor(key) + ' — now ' + (i + 1) + ' of ' + picked.length;
   }
+
+  function move(from, to) {
+    if (to < 0 || to >= picked.length || from === to) return;
+    var key = picked.splice(from, 1)[0];
+    picked.splice(to, 0, key);
+    renderRanked();
+    var el = document.querySelector('#ranked li[data-key="' + key + '"]');
+    if (el) el.focus();
+    announce(key);
+  }
+
+  /* Drag with POINTER events, not HTML5 drag-and-drop. Native DnD does not
+   * fire on touch at all, and a good half of the people this page is for will
+   * open it on a phone from a text message. Pointer events cover mouse, touch
+   * and pen with one path. Keyboard reordering stays available because
+   * dragging is not accessible on its own. */
+  var drag = null;
+
+  $('ranked').addEventListener('pointerdown', function (e) {
+    var li = e.target.closest('li');
+    if (!li) return;
+    drag = { li: li, key: li.getAttribute('data-key'), startY: e.clientY, moved: false };
+    li.setPointerCapture(e.pointerId);
+    li.classList.add('dragging');
+  });
+
+  $('ranked').addEventListener('pointermove', function (e) {
+    if (!drag) return;
+    if (!drag.moved && Math.abs(e.clientY - drag.startY) < 4) return;  // ignore a plain tap
+    drag.moved = true;
+    e.preventDefault();
+
+    var rows = Array.prototype.slice.call($('ranked').children);
+    var over = rows.find(function (r) {
+      if (r === drag.li) return false;
+      var b = r.getBoundingClientRect();
+      return e.clientY >= b.top && e.clientY <= b.bottom;
+    });
+    if (!over) return;
+
+    var from = rows.indexOf(drag.li);
+    var to = rows.indexOf(over);
+    // Move in the DOM only; `picked` is committed on pointerup so a drag that
+    // is abandoned mid-flight cannot leave the model half-reordered.
+    $('ranked').insertBefore(drag.li, from < to ? over.nextSibling : over);
+  });
+
+  function endDrag(e) {
+    if (!drag) return;
+    var li = drag.li, key = drag.key, moved = drag.moved;
+    li.classList.remove('dragging');
+    try { li.releasePointerCapture(e.pointerId); } catch (_) {}
+    drag = null;
+    if (!moved) { li.focus(); return; }
+    picked = Array.prototype.slice.call($('ranked').children)
+      .map(function (r) { return r.getAttribute('data-key'); });
+    renderRanked();
+    var el = document.querySelector('#ranked li[data-key="' + key + '"]');
+    if (el) el.focus();
+    announce(key);
+  }
+  $('ranked').addEventListener('pointerup', endDrag);
+  $('ranked').addEventListener('pointercancel', endDrag);
+
+  $('ranked').addEventListener('keydown', function (e) {
+    var li = e.target.closest('li');
+    if (!li) return;
+    var i = picked.indexOf(li.getAttribute('data-key'));
+    if (e.key === 'ArrowUp')   { e.preventDefault(); move(i, i - 1); }
+    if (e.key === 'ArrowDown') { e.preventDefault(); move(i, i + 1); }
+    if (e.key === 'Home')      { e.preventDefault(); move(i, 0); }
+    if (e.key === 'End')       { e.preventDefault(); move(i, picked.length - 1); }
+  });
 
   $('to-rank').addEventListener('click', function () {
     picked = checked();
@@ -242,8 +336,11 @@
   $('restart').addEventListener('click', function () {
     messages = []; picked = []; ownText = '';
     $('thread').innerHTML = '';
-    document.querySelectorAll('#picks input').forEach(function (i) { i.checked = false; });
+    document.querySelectorAll('#picks input').forEach(function (i) {
+      i.checked = false; i.disabled = false;
+    });
     $('own-text').value = '';
+    $('own-text').disabled = false;
     refreshNext();
     stopSpeaking();
     show('stage-pick');

@@ -31,8 +31,10 @@
   <section id="stage-pick" class="stage on">
     <p class="marker">▶ PLAYER 1 — INSERT COIN</p>
     <h1>Which of these sound like you?</h1>
-    <p class="sub">Check every one that fits. There's no wrong set, and
-      "all of them" is a normal answer.</p>
+    <p class="sub">Pick up to five — the ones that actually bite. If everything
+      on the list bothers you, that's fair, but five is enough to have a real
+      conversation about.</p>
+    <p class="counter" id="counter" aria-live="polite">0 of 5</p>
 
     <ul class="picks" id="picks">
       <li><label><input type="checkbox" value="principle"><span>I know what it is. I'd just rather spend my time and money on something else.</span></label></li>
@@ -61,10 +63,11 @@
   <section id="stage-rank" class="stage">
     <p class="marker">▶ RANK THEM</p>
     <h1>Which one bothers you most?</h1>
-    <p class="sub">Top of the list is the one that matters. Move them until it's
-      right — we'll start there.</p>
+    <p class="sub">Drag them into order. Top of the list is where we'll start.
+      (Keyboard: tab to one, then use the arrow keys.)</p>
 
     <ol class="ranked" id="ranked"></ol>
+    <p class="hint" id="rank-live" aria-live="polite"></p>
 
     <button class="go" id="to-hosts">▶ NEXT</button>
     <button class="back" id="back-to-pick">← change my picks</button>
