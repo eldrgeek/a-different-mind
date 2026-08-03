@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Invite someone — A Different Mind</title>
+<meta name="description" content="The people we most need to hear from won't arrive on their own. They arrive because you asked them.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%230d0b14'/%3E%3Ccircle cx='36' cy='50' r='20' fill='none' stroke='%23ff5cf0' stroke-width='8'/%3E%3Ccircle cx='64' cy='50' r='20' fill='none' stroke='%2340e0ff' stroke-width='8'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/site.css">
+</head>
+<body>
+
+<div class="scanlines" aria-hidden="true"></div>
+
+<header class="top">
+  <a class="wordmark" href="./">A DIFFERENT<span>MIND</span></a>
+  <nav><a href="./" class="ghost">▶ see what they'll see</a></nav>
+</header>
+
+<main class="wrap">
+  <p class="marker">▶ PLAYER 1 — YOU</p>
+  <h1>The people we need to hear from won't turn up on their own.</h1>
+  <p class="sub">They arrive because someone they already trust asked them to.
+    That's the whole mechanism. There isn't a second one.</p>
+
+  <div class="panel">
+    <p>Nobody trusts an AI on day one. But they trust <em>you</em> — so the
+      trust has to be handed over, not argued for. An invite with your name on
+      it is doing almost all of the work here; the site is just what happens
+      after.</p>
+  </div>
+
+  <h2 class="marker2">▶ WHO TO THINK OF</h2>
+  <div class="panel">
+    <p><strong>Not the loudest one.</strong> Not the person who argues about AI
+      at dinner — they're enjoying themselves and they aren't going to move.</p>
+    <p><strong>The one who goes quiet.</strong> Who changes the subject. Who
+      said "that's not really for me" once and you left it there. Who might be
+      a bit embarrassed about not knowing where to start, and would never say so
+      in those words.</p>
+    <p>That person has something we can't get anywhere else, and they're not
+      going to hand it to a company. They might hand it to you.</p>
+  </div>
+
+  <h2 class="marker2">▶ WHAT THEY'RE PROMISED</h2>
+  <div class="panel">
+    <p>So you can say it to them plainly, and so we're held to it:</p>
+    <p>Nothing to install, no account, nothing to buy. Nothing they say is
+      published, and nothing is attached to their name. Ten minutes. They can
+      stop anywhere. <strong>Nobody will try to talk them into anything</strong>
+      — and if they leave still wanting nothing to do with AI, that counts as
+      the thing working.</p>
+    <p>What we want from them is one answer: <em>what would have to be true
+      before you'd trust one of these things?</em> That's it. That's the ask.</p>
+  </div>
+
+  <h2 class="marker2">▶ BE THERE IF YOU CAN</h2>
+  <div class="panel">
+    <p>Best version: you're in the room, or on the phone, while they do it the
+      first time. Not steering — just there, the way you'd be there the first
+      time someone drives your car.</p>
+    <p>Please don't interview them about their objections beforehand. Being
+      cross-examined by a friend who has already decided you're wrong is a cold
+      open, and it's the fastest way to lose the thing we're after.</p>
+  </div>
+
+  <h2 class="marker2">▶ MAKE THE INVITE</h2>
+  <div class="panel">
+    <div id="signed-out">
+      <p class="small">Sign in so the invite can carry your name — that's the
+        part that matters. It's used for nothing else.</p>
+      <div class="row">
+        <input type="email" id="email-input" placeholder="you@example.com">
+        <button id="magic-btn">Email me a link</button>
+      </div>
+      <button id="google-btn" class="wide">Continue with Google</button>
+      <p class="small" id="signin-status"></p>
+    </div>
+
+    <div id="signed-in" hidden>
+      <p class="small">Signed in as <span id="whoami"></span> ·
+        <button class="linky" id="signout-link">sign out</button></p>
+      <div class="row">
+        <input type="text" id="inviter-name" maxlength="80" placeholder="Your name, as they know you">
+        <button id="create-invite-btn">Make an invite</button>
+      </div>
+      <p class="small" id="invite-status"></p>
+      <div id="qr-wrap" hidden>
+        <canvas id="qr-canvas"></canvas>
+        <p class="small mono" id="invite-url"></p>
+        <button id="copy-invite-btn">Copy link</button>
+        <p class="small">They'll be greeted by name: <em id="greet-preview"></em></p>
+      </div>
+    </div>
+  </div>
+
+  <p class="small credit" style="text-align:center">
+    From SOMA — Society of Minds Aligned — Denver ·
+    <a href="about">who made this, and why</a>
+  </p>
+</main>
+
+<link rel="stylesheet" href="vendor/soma-feedback/soma-feedback.css">
+<script src="vendor/soma-feedback/soma-feedback.js" defer
+        data-app="a-different-mind" data-area="invite"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="js/vendor/qrcode.min.js"></script>
+<script src="js/soma-auth-config.js"></script>
+<script src="js/soma-auth.js"></script>
+<script src="js/live-edit.js"></script>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var APP = 'a-different-mind';
+
+  // Mount point from this script's own location — see js/app.js for why
+  // location.pathname can't be trusted at a route.
+  var BASE = (function () {
+    var all = document.getElementsByTagName('script');
+    for (var i = all.length - 1; i >= 0; i--) {
+      if (all[i].src && /js\/soma-auth\.js/.test(all[i].src)) {
+        return all[i].src.replace(/js\/soma-auth\.js(\?.*)?$/, '');
+      }
+    }
+    return location.origin + '/';
+  })();
+
+  var user = null;
+
+  function render() {
+    var inn = !!user;
+    $('signed-out').hidden = inn;
+    $('signed-in').hidden = !inn;
+    if (inn) {
+      $('whoami').textContent = user.email || 'signed in';
+      if (!$('inviter-name').value) {
+        var m = user.user_metadata || {};
+        $('inviter-name').value = m.full_name || m.name ||
+          (user.email ? user.email.split('@')[0] : '');
+      }
+    }
+  }
+
+  SomaAuth.onAuthStateChange(function (e, session) {
+    user = session && session.user ? session.user : null;
+    render();
+  });
+  SomaAuth.init();
+  if (window.SomaLiveEdit) SomaLiveEdit.init();
+
+  $('magic-btn').addEventListener('click', function () {
+    var email = $('email-input').value.trim();
+    if (!email) { $('signin-status').textContent = 'Enter your email first.'; return; }
+    $('signin-status').textContent = 'Sending…';
+    SomaAuth.signInWithOtp(email, { emailRedirectTo: BASE + 'invite' })
+      .then(function (r) {
+        $('signin-status').textContent = r.error
+          ? 'Could not send the link: ' + r.error.message
+          : 'Check your email — the link brings you back here.';
+      });
+  });
+  $('google-btn').addEventListener('click', function () {
+    SomaAuth.signInWithOAuth('google', { redirectTo: BASE + 'invite' });
+  });
+  $('signout-link').addEventListener('click', function () { SomaAuth.signOut(); });
+
+  $('create-invite-btn').addEventListener('click', function () {
+    var name = $('inviter-name').value.trim();
+    if (!name) {
+      $('invite-status').textContent = 'Add your name — it is the part doing the work.';
+      return;
+    }
+    $('invite-status').textContent = 'Creating…';
+    SomaAuth.getClient().rpc('site_invite_create', { p_app: APP, p_name: name })
+      .then(function (res) {
+        if (res.error) {
+          $('invite-status').textContent = 'Could not create it: ' + res.error.message;
+          return;
+        }
+        var url = BASE + '?inv=' + res.data;
+        $('invite-status').textContent = 'Ready. Send them the link, or let them scan it.';
+        $('qr-wrap').hidden = false;
+        $('invite-url').textContent = url;
+        $('greet-preview').textContent = '“' + name + ' invited you here.”';
+        try {
+          QRCode.toCanvas($('qr-canvas'), url, { width: 200, margin: 1 }, function (err) {
+            if (err) { $('qr-canvas').hidden = true; }
+          });
+        } catch (e) { $('qr-canvas').hidden = true; }
+        $('copy-invite-btn').onclick = function () {
+          var b = this;
+          navigator.clipboard.writeText(url).then(function () {
+            b.textContent = 'Copied ✓';
+            setTimeout(function () { b.textContent = 'Copy link'; }, 1500);
+          });
+        };
+      });
+  });
+})();
+</script>
+</body>
+</html>

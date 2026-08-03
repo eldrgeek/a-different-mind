@@ -44,9 +44,41 @@
   <!-- ═══ invited arrival ═══ -->
   <div id="invited" class="invited" hidden></div>
 
-  <!-- ═══ STAGE 1 — pick. This is the first thing. No preamble. ═══ -->
-  <section id="stage-pick" class="stage on">
-    <p class="marker">▶ PLAYER 1 — INSERT COIN</p>
+  <!-- ═══ STAGE 0 — the ask. Recruitment, not rebuttal. ═══ -->
+  <section id="stage-open" class="stage on">
+    <p class="marker">▶ PLAYER 2 WANTED</p>
+    <h1>We need your help, and you're going to hate why.</h1>
+
+    <div class="panel">
+      <p>AI is not going to be ignored. There is far too much money and far too
+        much power riding on it. You already know that, and it's probably part
+        of why you'd rather not think about it — because what is there to do?</p>
+
+      <p>Here's our bet. The thing gets shaped by whoever shows up. Right now
+        the people showing up are the ones who were already excited. That is a
+        terrible sample. It produces exactly what you'd expect it to produce.</p>
+
+      <p><strong>We think the arc bends if people like you get involved</strong>
+        — people who are unimpressed, or worried, or tired of being told they'll
+        be left behind. Not because you'll be won over. Because you notice things
+        the enthusiasts don't.</p>
+
+      <p>So this isn't a pitch, and there's nothing to buy or sign up for. We
+        want to know what you actually think, and specifically: <strong>what
+        would have to be true before you'd trust one of these things at
+        all?</strong> That's the real question, and nobody with money on the
+        table is asking it.</p>
+    </div>
+
+    <p class="hint">Takes about ten minutes. Nothing is stored against your name.
+      You can stop whenever you like, and disagreeing is the useful outcome.</p>
+
+    <button class="go" id="to-pick">▶ ALRIGHT — I'LL BITE</button>
+  </section>
+
+  <!-- ═══ STAGE 1 — pick ═══ -->
+  <section id="stage-pick" class="stage">
+    <p class="marker">▶ WHAT'S PUSHING YOU AWAY</p>
     <h1>Which of these sound like you?</h1>
     <p class="sub">Pick up to five — the ones that actually bite. If everything
       on the list bothers you, that's fair, but five is enough to have a real
@@ -151,6 +183,44 @@
       <button class="linky" id="restart" type="button">start over</button>
       <span class="dot">·</span>
       <a href="about">who made this?</a>
+      <span class="dot">·</span>
+      <button class="linky" id="to-ask" type="button">I'm done — take my answer</button>
+    </p>
+  </section>
+
+  <!-- ═══ STAGE 5 — the ask. The visit ends with us owing them, not the reverse. ═══ -->
+  <section id="stage-ask" class="stage">
+    <p class="marker">▶ THE PART WE ACTUALLY NEEDED</p>
+    <h1>What would have to be true?</h1>
+    <p class="sub">Not "what's wrong with AI" — you've told us that. This one:
+      what would have to be true before you'd trust one of these things with
+      anything that mattered to you? Even if the answer is "nothing could be."
+      Especially then.</p>
+
+    <textarea id="ask-text" rows="5" data-user-content
+      placeholder="It would have to…"></textarea>
+
+    <button class="go" id="send-ask">▶ SEND IT TO MIKE</button>
+    <p class="hint" id="ask-status">Goes to Mike, not to a public wall. If he
+      ever wants to quote you, he'll come and ask.</p>
+  </section>
+
+  <!-- ═══ STAGE 6 — done ═══ -->
+  <section id="stage-done" class="stage">
+    <p class="marker">▶ THANK YOU — PLAYER 2</p>
+    <h1>That's the useful thing.</h1>
+    <div class="panel">
+      <p>Genuinely. The enthusiasts can't produce that answer, because they
+        already trust it and can't remember not to.</p>
+      <p>You're under no obligation to do anything else. If you want to know
+        who's behind this and why, that's the one page we deliberately kept out
+        of your way until now.</p>
+    </div>
+    <p style="text-align:center;margin:1.6rem 0">
+      <a href="about" class="go" style="display:inline-block;text-decoration:none">▶ WHO MADE THIS, AND WHY</a>
+    </p>
+    <p class="hint" style="text-align:center">
+      <button class="linky" id="restart2" type="button">start over</button>
     </p>
   </section>
 

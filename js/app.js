@@ -57,8 +57,11 @@
   var wasInvited = false;
 
   /* ── stages ───────────────────────────────────────────────────────────── */
+  var STAGES = ['stage-open', 'stage-pick', 'stage-rank', 'stage-hosts',
+                'stage-convo', 'stage-ask', 'stage-done'];
+
   function show(id) {
-    ['stage-pick', 'stage-rank', 'stage-hosts', 'stage-convo'].forEach(function (s) {
+    STAGES.forEach(function (s) {
       $(s).classList.toggle('on', s === id);
     });
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -213,6 +216,8 @@
     if (e.key === 'End')       { e.preventDefault(); move(i, picked.length - 1); }
   });
 
+  $('to-pick').addEventListener('click', function () { show('stage-pick'); });
+
   $('to-rank').addEventListener('click', function () {
     picked = checked();
     if (ownText) picked.push('own');
@@ -360,8 +365,9 @@
     $('own-text').disabled = false;
     refreshNext();
     stopSpeaking();
-    show('stage-pick');
+    show('stage-open');
   });
+  $('restart2').addEventListener('click', function () { $('restart').click(); });
 
   /* ── speech out (browser-native; no key, no third party) ───────────────── */
   var ttsOn = false;
@@ -501,6 +507,54 @@
           });
         };
       });
+  });
+
+  /* ── the ask: the visit ends with us owing them ────────────────────────
+   * The corpus says argument does not convert (~6 concessions in 144,531
+   * segments). So the metric is not "did they concede" but "did they
+   * contribute" — and the contribution is the RSI input. Everything a person
+   * gives here should change what gets built next. */
+  function record(kind, body, done) {
+    var c = window.SomaAuth && SomaAuth.getClient();
+    if (!c || !body || !body.trim()) { if (done) done(true); return; }
+    c.rpc('site_contribution_add', {
+      p_app: APP,
+      p_kind: kind,
+      p_body: body,
+      p_ranked: picked.length ? picked : null,
+      p_invite: token || null,
+      p_inviter: inviterName || null,
+      p_meta: { turns: messages.length, own: ownText || null, route: location.pathname }
+    }).then(function (res) { if (done) done(!res.error, res.error); });
+  }
+
+  $('to-ask').addEventListener('click', function () {
+    stopSpeaking();
+    show('stage-ask');
+    $('ask-text').focus();
+  });
+
+  $('send-ask').addEventListener('click', function () {
+    var body = $('ask-text').value.trim();
+    if (!body) {
+      $('ask-status').textContent = "Even one line helps. Or skip it — no hard feelings.";
+      return;
+    }
+    $('send-ask').disabled = true;
+    $('ask-status').textContent = 'Sending…';
+    record('condition-for-trust', body, function (ok, err) {
+      $('send-ask').disabled = false;
+      if (!ok) {
+        $('ask-status').textContent = "That didn't send — " + ((err && err.message) || 'try once more') + '.';
+        return;
+      }
+      // The conversation itself is worth keeping too, but only ever as their
+      // side of it, and only once they've chosen to send something.
+      var mine = messages.filter(function (m) { return m.role === 'user'; })
+                         .map(function (m) { return m.content; }).join('\n\n');
+      if (mine) record('objection', mine);
+      show('stage-done');
+    });
   });
 
   /* ── invited arrival ──────────────────────────────────────────────────── */
